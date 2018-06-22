@@ -11,8 +11,6 @@ namespace Otc.PubSub.PunchySubscriber
 {
     public class Subscriber : ISubscriber
     {
-        internal const string BadMessageTopicNameSuffix = "_deadletter_";
-
         private readonly IPubSub pubSub;
         private readonly SubscriberConfiguration configuration;
         private readonly ILogger logger;
@@ -24,18 +22,18 @@ namespace Otc.PubSub.PunchySubscriber
             logger = loggerFactory?.CreateLogger<Subscriber>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        public async Task SubscribeAsync(Action<PunchyMessage> action, string group, CancellationToken cancellationToken, params string[] topics)
+        public async Task SubscribeAsync(Func<PunchyMessage, Task> onMessageAsync, string group, CancellationToken cancellationToken, params string[] topics)
         {
-            var messageHandler = new MessageHandler(action, pubSub, logger, configuration);
+            var messageHandler = new MessageHandler(onMessageAsync, pubSub, logger, configuration);
             var retryerTopics = new List<string>();
-
-            if (configuration.SubscribeToRetryerTopics)
+            
+            foreach (var topic in topics)
             {
-                foreach (var topic in topics)
+                if (!MessageLevelHelpers.IsBadMessageTopic(topic))
                 {
                     for (int i = 0; i < configuration.LevelDelaysInSeconds.Length - 1; i++)
                     {
-                        retryerTopics.Add($"{topic}{BadMessageTopicNameSuffix}{i}");
+                        retryerTopics.Add($"{topic}{MessageLevelHelpers.BadMessageTopicNameSuffix}{i}");
                     }
                 }
             }

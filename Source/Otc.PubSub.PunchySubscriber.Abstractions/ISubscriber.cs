@@ -8,6 +8,6 @@ namespace Otc.PubSub.PunchySubscriber.Abstractions
 {
     public interface ISubscriber
     {
-        Task SubscribeAsync(Action<PunchyMessage> action, string group, CancellationToken cancellationToken, params string[] topics);
+        Task SubscribeAsync(Func<PunchyMessage, Task> onMessageAsync, string group, CancellationToken cancellationToken, params string[] topics);
     }
 }
