@@ -15,7 +15,13 @@ namespace Otc.PubSub.PunchySubscriber.Tests
         public IntegrationsTests()
         {
             var services = new ServiceCollection();
-            services.AddPunchySubscriber();
+            services.AddPunchySubscriber(config =>
+            {
+                config.Configure(new SubscriberConfiguration()
+                {
+                    LevelDelaysInSeconds = new int [] { 30, 60, 90 }
+                });
+            });
 
             services.AddKafkaPubSub(config =>
             {
@@ -35,7 +41,7 @@ namespace Otc.PubSub.PunchySubscriber.Tests
             var subscriber = serviceProvider.GetService<ISubscriber>();
             var cts = new CancellationTokenSource();
 
-            await subscriber.SubscribeAsync(OnMessage, "xeyder", cts.Token, "teste", "teste_deadletter_0", "teste_deadletter_1");
+            await subscriber.SubscribeAsync(OnMessage, "xeydr", cts.Token, "teste");
         }
 
         private void OnMessage(PunchyMessage message)

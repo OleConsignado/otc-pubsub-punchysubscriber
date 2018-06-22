@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Otc.PubSub.PunchySubscriber;
 using Otc.PubSub.PunchySubscriber.Abstractions;
 using System;
 
-namespace Otc.PubSub.PunchySubscriber
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class OtcPunchySubscriberServiceCollectionExtensions
     {

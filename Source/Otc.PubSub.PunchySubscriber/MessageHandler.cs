@@ -137,8 +137,7 @@ namespace Otc.PubSub.PunchySubscriber
 
         private static class BadMessageLevelHelpers
         {
-            private const string BadMessageTopicSuffix = "_deadletter_";
-            private static readonly string BadMessageTopicSuffixPattern = $"{BadMessageTopicSuffix}([0-9])+$";
+            private static readonly string BadMessageTopicSuffixPattern = $"{Subscriber.BadMessageTopicNameSuffix}([0-9])+$";
 
             public static int ExtractBadMessageNextLevel(string topic)
             {
@@ -174,11 +173,11 @@ namespace Otc.PubSub.PunchySubscriber
 
                 if (level > 0)
                 {
-                    badMessageTopic = Regex.Replace(topic, BadMessageTopicSuffixPattern, $"{BadMessageTopicSuffix}{level}");
+                    badMessageTopic = Regex.Replace(topic, BadMessageTopicSuffixPattern, $"{Subscriber.BadMessageTopicNameSuffix}{level}");
                 }
                 else
                 {
-                    badMessageTopic = $"{topic}{BadMessageTopicSuffix}{level}";
+                    badMessageTopic = $"{topic}{Subscriber.BadMessageTopicNameSuffix}{level}";
                 }
 
                 return badMessageTopic;

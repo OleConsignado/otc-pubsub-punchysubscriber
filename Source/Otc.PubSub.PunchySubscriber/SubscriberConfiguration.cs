@@ -1,12 +1,12 @@
-﻿namespace Otc.PubSub.PunchySubscriber
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Otc.PubSub.PunchySubscriber
 {
     public class SubscriberConfiguration
     {
-        public int[] LevelDelaysInSeconds { get; set; } = new int[]
-        {
-            300,
-            600,
-            900
-        };
+        [Required]
+        public int[] LevelDelaysInSeconds { get; set; }
+
+        public bool SubscribeToRetryerTopics { get; set; } = true;
     }
 }
