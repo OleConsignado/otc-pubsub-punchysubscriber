@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+CICD_COMMON_VERSION="5b762e0ea98b19f11cd426c32c76051deeb6d9fd"
+
+export CLASS_LIBRARY_PROJ_DIR=Source/Otc.PubSub.PunchySubscriber.Abstractions
+export TEST_PROJ_DIR=Source/Otc.PubSub.PunchySubscriber.Tests
+
+cd $TRAVIS_BUILD_DIR
+
+wget -q https://raw.githubusercontent.com/OleConsignado/otc-cicd-common/$CICD_COMMON_VERSION/cicd-common.sh -O ./cicd-common.sh
+chmod +x ./cicd-common.sh
+
+./cicd-common.sh $@
+
+export CLASS_LIBRARY_PROJ_DIR=Source/Otc.PubSub.PunchySubscriber
+
+./cicd-common.sh $@

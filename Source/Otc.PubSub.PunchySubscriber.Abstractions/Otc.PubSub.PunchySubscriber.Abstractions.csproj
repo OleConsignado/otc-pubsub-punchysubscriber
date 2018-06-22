@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Ole Consignado</Authors>
+    <PackageLicenseUrl>https://github.com/OleConsignado/otc-pubsub-punchysubscriber/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/OleConsignado/otc-pubsub-punchysubscriber</PackageProjectUrl>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn>1701;1702;1591</NoWarn>
+    <DocumentationFile>bin\Release\netstandard2.0\Otc.PubSub.PunchySubscriber.Abstractions.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn>1701;1702;1591</NoWarn>
+    <DocumentationFile>bin\Debug\netstandard2.0\Otc.PubSub.PunchySubscriber.Abstractions.xml</DocumentationFile>
+  </PropertyGroup>
+
+</Project>
