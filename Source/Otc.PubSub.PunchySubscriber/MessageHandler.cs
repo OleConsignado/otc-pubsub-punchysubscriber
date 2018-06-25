@@ -15,15 +15,17 @@ namespace Otc.PubSub.PunchySubscriber
         private readonly IPubSub pubSub;
         private readonly ILogger logger;
         private readonly SubscriberConfiguration configuration;
+        private readonly string groupId;
         private readonly int badMessageMaxLevels;
 
         public MessageHandler(Func<PunchyMessage, Task> onMessageAsync, IPubSub pubSub, ILogger logger,
-            SubscriberConfiguration configuration)
+            SubscriberConfiguration configuration, string groupId)
         {
             this.onMessageAsync = onMessageAsync ?? throw new ArgumentNullException(nameof(onMessageAsync));
             this.pubSub = pubSub ?? throw new ArgumentNullException(nameof(pubSub));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            this.groupId = groupId ?? throw new ArgumentNullException(nameof(groupId));
             badMessageMaxLevels = configuration.LevelDelaysInSeconds.Length;
         }
 
@@ -36,7 +38,7 @@ namespace Otc.PubSub.PunchySubscriber
 
         private IMessage GetSourceMessage(IMessage message, List<Attempt> attempts)
         {
-            var badMessageCurrentLevel = MessageLevelHelpers.ExtractBadMessageLevel(message.Topic);
+            var badMessageCurrentLevel = TopicNameHelpers.ExtractBadMessageLevel(message.Topic);
 
             while (message != null && badMessageCurrentLevel >= 0)
             {
@@ -64,7 +66,7 @@ namespace Otc.PubSub.PunchySubscriber
                     // the message is being replaced here with the original message
                     message = pubSub.ReadSingle(badMessageContents.SourceMessageAddress);
 
-                    badMessageCurrentLevel = MessageLevelHelpers.ExtractBadMessageLevel(message.Topic);
+                    badMessageCurrentLevel = TopicNameHelpers.ExtractBadMessageLevel(message.Topic);
                 }
                 else
                 {
@@ -82,8 +84,18 @@ namespace Otc.PubSub.PunchySubscriber
                 throw new ArgumentNullException(nameof(message));
             }
 
-            var badMessageNextLevel = MessageLevelHelpers.ExtractBadMessageNextLevel(message.Topic);
-            var badMessageNextLevelTopicName = MessageLevelHelpers.BuildBadMessageTopicName(message.Topic, badMessageNextLevel);
+            var badMessageNextLevel = TopicNameHelpers.ExtractBadMessageNextLevel(message.Topic);
+
+            string badMessageNextLevelTopicName;
+
+            if (badMessageNextLevel == badMessageMaxLevels) 
+            {
+                badMessageNextLevelTopicName = TopicNameHelpers.BuildDeadLetterTopicName(message.Topic, groupId);
+            }
+            else
+            {
+                badMessageNextLevelTopicName = TopicNameHelpers.BuildBadMessageTopicName(message.Topic, badMessageNextLevel, groupId);
+            }
 
             var attempts = new List<Attempt>();
             var badMessageCandidate = message;

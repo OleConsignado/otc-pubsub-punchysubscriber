@@ -19,7 +19,7 @@ namespace Otc.PubSub.PunchySubscriber.Tests
             {
                 config.Configure(new SubscriberConfiguration()
                 {
-                    LevelDelaysInSeconds = new int[] { 30, 60, 90 }
+                    LevelDelaysInSeconds = new int[] { 1, 2, 3 }
                 });
             });
 
@@ -41,7 +41,7 @@ namespace Otc.PubSub.PunchySubscriber.Tests
             var subscriber = serviceProvider.GetService<ISubscriber>();
             var cts = new CancellationTokenSource();
 
-            await subscriber.SubscribeAsync(OnMessageAsync, "xeydr", cts.Token, "teste");
+            await subscriber.SubscribeAsync(OnMessageAsync, "xyerfdr", cts.Token, "teste");
         }
 
         private Task OnMessageAsync(PunchyMessage message)

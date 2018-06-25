@@ -22,23 +22,46 @@ namespace Otc.PubSub.PunchySubscriber
             logger = loggerFactory?.CreateLogger<Subscriber>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
-        public async Task SubscribeAsync(Func<PunchyMessage, Task> onMessageAsync, string group, CancellationToken cancellationToken, params string[] topics)
+        public async Task SubscribeAsync(Func<PunchyMessage, Task> onMessageAsync, string groupId, CancellationToken cancellationToken, params string[] topics)
         {
-            var messageHandler = new MessageHandler(onMessageAsync, pubSub, logger, configuration);
+            if (onMessageAsync == null)
+            {
+                throw new ArgumentNullException(nameof(onMessageAsync));
+            }
+
+            if (groupId == null)
+            {
+                throw new ArgumentNullException(nameof(groupId));
+            }
+
+            if(!TopicNameHelpers.IsValid(groupId))
+            {
+                throw new ArgumentException(
+                    $"The groupId must match regex pattern: '{TopicNameHelpers.TopicOrGroupIdValidationRegexPattern}'", nameof(groupId));
+            }
+
+            var messageHandler = new MessageHandler(onMessageAsync, pubSub, logger, configuration, groupId);
             var retryerTopics = new List<string>();
             
             foreach (var topic in topics)
             {
-                if (!MessageLevelHelpers.IsBadMessageTopic(topic))
+                if (!TopicNameHelpers.IsValid(topic))
                 {
-                    for (int i = 0; i < configuration.LevelDelaysInSeconds.Length - 1; i++)
+                    throw new ArgumentException(
+                        $"The topic name must match regex pattern: '{TopicNameHelpers.TopicOrGroupIdValidationRegexPattern}'. " +
+                        $"Validation failed for '{topic}'.", nameof(topics));
+                }
+
+                if (!TopicNameHelpers.IsBadMessageTopic(topic))
+                {
+                    for (int i = 0; i < configuration.LevelDelaysInSeconds.Length; i++)
                     {
-                        retryerTopics.Add($"{topic}{MessageLevelHelpers.BadMessageTopicNameSuffix}{i}");
+                        retryerTopics.Add(TopicNameHelpers.BuildBadMessageTopicName(topic, i, groupId));
                     }
                 }
             }
 
-            await pubSub.SubscribeAsync(messageHandler, group, cancellationToken, topics.Union(retryerTopics).ToArray());
+            await pubSub.SubscribeAsync(messageHandler, groupId, cancellationToken, topics.Union(retryerTopics).ToArray());
         }
     }
 }
