@@ -9,5 +9,6 @@ namespace Otc.PubSub.PunchySubscriber.Abstractions
     public interface ISubscriber
     {
         Task SubscribeAsync(Func<PunchyMessage, Task> onMessageAsync, string groupId, CancellationToken cancellationToken, params string[] topics);
+        Task SubscribeToDeadLetterAsync(Func<PunchyMessage, Task> onMessageAsync, string groupId, CancellationToken cancellationToken, params string[] topics);
     }
 }

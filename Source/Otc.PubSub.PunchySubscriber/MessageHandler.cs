@@ -18,6 +18,8 @@ namespace Otc.PubSub.PunchySubscriber
         private readonly string groupId;
         private readonly int badMessageMaxLevels;
 
+        public ISubscription Subscription { get; set; }
+
         public MessageHandler(Func<PunchyMessage, Task> onMessageAsync, IPubSub pubSub, ILogger logger,
             SubscriberConfiguration configuration, string groupId)
         {
@@ -58,10 +60,10 @@ namespace Otc.PubSub.PunchySubscriber
                 // retrying
                 var messageTimestamp = message.Timestamp;
 
-                var messageAge = (int)Math.Round((DateTimeOffset.Now - messageTimestamp).TotalMilliseconds);
+                var messageAgeMilliseconds = (int)Math.Round((DateTimeOffset.Now - messageTimestamp).TotalMilliseconds);
                 var delayMilliseconds = configuration.LevelDelaysInSeconds[badMessageCurrentLevel] * 1000;
 
-                if (messageAge >= delayMilliseconds)
+                if (messageAgeMilliseconds >= delayMilliseconds)
                 {
                     // the message is being replaced here with the original message
                     message = pubSub.ReadSingle(badMessageContents.SourceMessageAddress);
@@ -70,6 +72,9 @@ namespace Otc.PubSub.PunchySubscriber
                 }
                 else
                 {
+                    var reloadAt = DateTimeOffset.Now.AddMilliseconds(delayMilliseconds - messageAgeMilliseconds);
+                    logger.LogDebug("Retrying message but delay time did not ellapse yet, so ignoring it for now. Will reload PubSub at {ReloadAt}", reloadAt);
+                    Subscription?.ReloadAt(reloadAt);
                     message = null; // retry time not ellapsed
                 }
             }

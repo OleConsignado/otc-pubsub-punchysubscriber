@@ -7,7 +7,7 @@ namespace Otc.PubSub.PunchySubscriber
     {
         private const string BadMessageTopicNameSuffix = "retryer";
         private const string DeadLetterTopicNameSuffix = "deadletter";
-        private static string BadMessageTopicSuffixPattern => $"_[A-Za-z0-9._-]+_{BadMessageTopicNameSuffix}_([0-9])+$";
+        private static string BadMessageTopicSuffixPattern => $"_{BadMessageTopicNameSuffix}_([0-9])+$";
 
         public static int ExtractBadMessageNextLevel(string topic)
         {
@@ -27,6 +27,8 @@ namespace Otc.PubSub.PunchySubscriber
             return level;
         }
 
+
+        // TODO: improve this and remove code replication under BuildBadMessageTopicName/BuildDeadLetterTopicName
         public static string BuildBadMessageTopicName(string topic, int level, string groupId)
         {
             string badMessageTopic;
@@ -35,7 +37,7 @@ namespace Otc.PubSub.PunchySubscriber
 
             if (IsBadMessageTopic(topic))
             {
-                badMessageTopic = Regex.Replace(topic, BadMessageTopicSuffixPattern, topicNameSuffixWithGroupIdAndLevel);
+                badMessageTopic = Regex.Replace(topic, $"_{Regex.Escape(groupId)}{BadMessageTopicSuffixPattern}", topicNameSuffixWithGroupIdAndLevel);
             }
             else
             {
@@ -43,18 +45,6 @@ namespace Otc.PubSub.PunchySubscriber
             }
 
             return badMessageTopic;
-        }
-
-        public static bool IsBadMessageTopic(string topic)
-        {
-            return ExtractBadMessageLevel(topic) != -1;
-        }
-
-        public const string TopicOrGroupIdValidationRegexPattern = "^[A-Za-z0-9._-]{1,96}$";
-
-        public static bool IsValid(string topicOrGroupId)
-        {
-            return Regex.IsMatch(topicOrGroupId, TopicOrGroupIdValidationRegexPattern);
         }
 
         public static string BuildDeadLetterTopicName(string topic, string groupId)
@@ -65,7 +55,7 @@ namespace Otc.PubSub.PunchySubscriber
 
             if (IsBadMessageTopic(topic))
             {
-                deadLetterTopic = Regex.Replace(topic, BadMessageTopicSuffixPattern, deadLetterTopicNameSuffixWithGroupId);
+                deadLetterTopic = Regex.Replace(topic, $"_{Regex.Escape(groupId)}{BadMessageTopicSuffixPattern}", deadLetterTopicNameSuffixWithGroupId);
             }
             else
             {
@@ -74,5 +64,19 @@ namespace Otc.PubSub.PunchySubscriber
 
             return deadLetterTopic;
         }
+
+        public static bool IsBadMessageTopic(string topic)
+        {
+            return ExtractBadMessageLevel(topic) != -1 || Regex.IsMatch(topic, $"{Regex.Escape(DeadLetterTopicNameSuffix)}$");
+        }
+
+        public const string TopicOrGroupIdValidationRegexPattern = "^[A-Za-z0-9._-]{1,96}$";
+
+        public static bool IsValid(string topicOrGroupId)
+        {
+            return Regex.IsMatch(topicOrGroupId, TopicOrGroupIdValidationRegexPattern);
+        }
+
+
     }
 }

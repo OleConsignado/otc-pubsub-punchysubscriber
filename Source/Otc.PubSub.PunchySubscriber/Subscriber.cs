@@ -61,7 +61,15 @@ namespace Otc.PubSub.PunchySubscriber
                 }
             }
 
-            await pubSub.SubscribeAsync(messageHandler, groupId, cancellationToken, topics.Union(retryerTopics).ToArray());
+            var subscription = pubSub.Subscribe(messageHandler, groupId, topics.Union(retryerTopics).ToArray());
+            messageHandler.Subscription = subscription;
+            await subscription.StartAsync(cancellationToken);
+        }
+
+        public async Task SubscribeToDeadLetterAsync(Func<PunchyMessage, Task> onMessageAsync, string groupId, CancellationToken cancellationToken, params string[] topics)
+        {
+            topics = topics.Select(topic => TopicNameHelpers.BuildDeadLetterTopicName(topic, groupId)).ToArray();
+            await SubscribeAsync(onMessageAsync, groupId, cancellationToken, topics);
         }
     }
 }
