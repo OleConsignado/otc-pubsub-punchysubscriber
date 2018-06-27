@@ -38,6 +38,7 @@ namespace Otc.PubSub.PunchySubscriber.Tests
             {
                 c.SetMinimumLevel(LogLevel.Debug);
                 c.AddDebug();
+                c.AddConsole();
             });
             
             serviceProvider = services.BuildServiceProvider();
